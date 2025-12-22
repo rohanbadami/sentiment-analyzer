@@ -2,7 +2,7 @@
 
 A full-stack financial analysis pipeline that filters active tickers, scrapes news headlines, performs multi-model sentiment analysis (FinBERT, VADER, Custom ML), integrates market price data, and visualizes actionable "Signal vs. Noise" insights via an interactive dashboard.
 
-![Dashboard Preview](https://img.shields.io/badge/Status-Active-success) ![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![License](https://img.shields.io/badge/License-MIT-green)
+![Dashboard Preview](https://img.shields.io/badge/Status-Active-success) ![Python](https://img.shields.io/badge/Python-3.12%2B-blue) ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## 🚀 Project Overview
 
@@ -64,7 +64,7 @@ The pipeline is designed to run in a specific order. **Ticker Filtering** must r
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.12+
 - MySQL Server (local or remote)
 - CUDA-enabled GPU (Recommended for FinBERT, but works on CPU)
 
