@@ -1,88 +1,137 @@
+Here is the **entire README fully converted to Markdown**, with the **correct title applied** and **ready to paste directly into `README.md`**.
+
+---
+
 # Integrated Financial Sentiment Analyzer & Dashboard
 
-A professional-grade, full-stack financial analysis system that transforms raw news headlines into actionable trading signals. It leverages an ensemble of NLP models (FinBERT, VADER, Custom ML) and a robust "Gatekeeper" classifier to filter out market noise, ensuring you only see high-confidence opportunities.
+A professional-grade, full-stack financial analysis system that transforms raw news headlines into actionable trading signals. It leverages an ensemble of NLP models (FinBERT, VADER, Custom ML) and a robust **Gatekeeper (Binary Classifier)** to filter out market noise—ensuring you only see high-confidence opportunities.
 
-![Status](https://img.shields.io/badge/Status-Active-success) ![Python](https://img.shields.io/badge/Python-3.12%2B-blue) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B) ![LightGBM](https://img.shields.io/badge/AI-LightGBM-orange) ![License](https://img.shields.io/badge/License-MIT-green)
+![Status](https://img.shields.io/badge/Status-Active-success)
+![Python](https://img.shields.io/badge/Python-3.12%2B-blue)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B)
+![LightGBM](https://img.shields.io/badge/AI-LightGBM-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+---
 
 ## 🚀 Project Overview
 
-Most sentiment analyzers fail because they treat every news article as important. This project is different. It implements a **"Signal vs. Noise" philosophy**:
+Most sentiment analyzers fail because they treat every news article as important. This system is different. It implements a strict **Signal vs. Noise** philosophy:
 
-1.  **Ingests** thousands of headlines from the web (24/7).
-2.  **Scores** them using financial-specific LLMs (FinBERT).
-3.  **Validates** them against historical price action (Technical Analysis).
-4.  **Filters** them using a trained "Gatekeeper" AI that rejects 90% of fluff.
-5.  **Visualizes** the top 10% of "High Confidence" signals on a real-time dashboard.
+1. **Ingests** thousands of financial news headlines continuously
+2. **Scores** them using financial-specific NLP models (FinBERT, VADER, Custom ML)
+3. **Validates** sentiment against historical market behavior
+4. **Filters** headlines using a trained **Gatekeeper AI** that rejects ~90% of noise
+5. **Visualizes** only **high-confidence signals** in a real-time dashboard
 
-### Key Features
-* **Ensemble NLP Engine:** Combines **FinBERT** (Financial LLM), **VADER**, and a **Custom Dictionary** for nuanced sentiment scoring.
-* **The "Gatekeeper" Model:** A LightGBM classifier trained on historical data to predict if news will *actually* move price. It achieves **68% Precision** on high-confidence signals.
-* **Robust Data Handling:** Features a custom **"Weekend Patch"** to handle Sunday news by intelligently mapping it to Friday's close, preventing data gaps.
-* **Technical Integration:** Automatically calculates RSI (14), MACD, Bollinger Bands, and Volatility (VIX) to give context to every headline.
-* **Live Dashboard:** A Streamlit interface with "Watchlist," "Technical Charts," and "AI Insights" tabs.
+---
+
+## ⭐ Key Features
+
+* **Ensemble NLP Engine**
+  Combines **FinBERT** (financial LLM), **VADER**, and a **custom sentiment model** for nuanced scoring.
+
+* **Gatekeeper Binary Classifier**
+  A LightGBM model trained to predict whether news will *actually* move price.
+  Achieves **~68% precision** on actionable signals.
+
+* **Robust Data Engineering**
+  Includes a custom **Weekend Patch** that maps weekend news to Friday’s close to prevent missing market context.
+
+* **Technical Market Context**
+  Automatically computes RSI (14), MACD, Bollinger Bands, SMA-50, and volatility context.
+
+* **Live Analytics Dashboard**
+  Built with **Streamlit + Plotly**, offering Watchlists, Technical Charts, and AI-driven insights.
 
 ---
 
 ## 🔄 System Architecture & Workflow
 
-The pipeline is modular. Each phase builds upon the last, storing all data in a central MySQL database.
-mermaid graph TD A[Scraper (Phase 1)] -->|Raw Headlines| B(MySQL Database) B --> C[Sentiment Engine (Phase 2)] C -->|Scores| B D[Price Fetcher (Phase 3)] -->|OHLCV + Technicals| B B --> E[AI Gatekeeper (Phase 4)] E -->|Confidence Scores| B B --> F[Streamlit Dashboard (Phase 5)]
+Each pipeline stage builds on the last, with all data persisted in a central MySQL database.
+
+```mermaid
+graph TD
+    A[Headline Scraper] -->|Raw News| B(MySQL)
+    B --> C[Sentiment Engine]
+    C -->|Sentiment Scores| B
+    D[Market Data & Technicals] -->|OHLCV| B
+    B --> E[AI Gatekeeper]
+    E -->|Confidence Scores| B
+    B --> F[Streamlit Dashboard]
+```
+
 ---
 
-## 📂 Detailed Components
+## 📂 Pipeline Components
 
-### 1. Data Ingestion (Phase 1)
+### Phase 1 — Data Ingestion
 
 * **Script:** `phase1_headline_scraper.py`
-* **Function:** Turbo-charged scraper using `concurrent.futures` to monitor hundreds of tickers simultaneously.
-* **Features:** Rate-limit handling, user-agent rotation, and duplicate detection.
+* High-throughput concurrent scraper
+* Handles rate limits, user-agent rotation, and duplicate detection
 
-### 2. Sentiment Engine (Phase 2)
+---
+
+### Phase 2 — Sentiment Analysis
 
 * **Script:** `phase2_sentiment_analysis.py`
-* **Logic:** Runs text through the `IntegratedProcessor`.
-* **FinBERT:** Detects subtle financial tone.
-* **VADER:** Catches general positive/negative hype.
-* **Custom ML:** Learns from your specific dataset over time.
+* Uses an `IntegratedProcessor` pipeline
+* **FinBERT:** Financial nuance
+* **VADER:** General market tone
+* **Custom ML:** Dataset-adaptive learning
 
+**Output:**
 
-* **Output:** A `sentiment_combined` score (-1 to 1) stored in the DB.
+* `sentiment_combined` ∈ **[-1, 1]**, stored in MySQL
 
-### 3. Market Context & "The Weekend Patch" (Phase 3)
+---
+
+### Phase 3 — Market Context & Weekend Patch
 
 * **Script:** `phase3_price_integration.py`
-* **Function:** Fetches OHLCV data via `yfinance`.
-* **Crucial Feature:** **The Weekend Patch**. Standard datasets fail on Sundays. This script "patches" weekend news to the last known market close (Friday) so the AI can still grade Sunday news without crashing.
-* **Indicators:** RSI, MACD, Bollinger Band Width, SMA50.
+* Fetches OHLCV data using `yfinance`
+* **Weekend Patch:** Assigns weekend news to last market close (Friday)
+* Computes:
 
-### 4. The AI Core (Phase 4)
+  * RSI (14)
+  * MACD
+  * Bollinger Band Width
+  * SMA-50
 
-This is the brain of the operation. It consists of three parts:
+---
 
-* **A. The Gatekeeper (Classifier):** `phase4_classifier_mysql.py`
-* Trains a LightGBM model to predict "Significant Moves" (e.g., >1.5% change).
-* **Safety Feature:** Explicitly removes "Cheat Features" (like VIX, Day of Week) to prevent overfitting. The AI is forced to read the news, not the calendar.
+### Phase 4 — AI Core
 
+#### A. Gatekeeper (Binary Classifier)
 
-* **B. The Price Predictor (Regressor):** `phase4_regressor_mysql.py`
-* Estimates the *magnitude* of the move (e.g., "This looks like a +3% jump").
+* **Script:** `phase4_classifier_mysql.py`
+* Predicts whether news causes a **significant price move** (e.g., >1.5%)
+* Removes “cheat features” (VIX, weekday, etc.) to prevent leakage
 
+#### B. Price Magnitude Regressor
 
-* **C. The Live Grader (Inference):** `phase4_backfill_predictions.py`
-* **This is the worker.** It takes the trained model and grades all incoming news in real-time. It assigns the `ml_confidence` score (0.00 to 1.00).
+* **Script:** `phase4_regressor_mysql.py`
+* Estimates expected move size (e.g., +2.8%)
 
+#### C. Live Inference Worker
 
+* **Script:** `phase4_backfill_predictions.py`
+* Applies trained models to incoming news
+* Outputs `ml_confidence` ∈ **[0.00, 1.00]**
 
-### 5. The Dashboard (Phase 5)
+---
+
+### Phase 5 — Dashboard
 
 * **Script:** `phase5_dashboard.py`
-* **Tech:** Streamlit + Plotly.
-* **Tabs:**
-* 🔮 **Watchlist:** Top picks for the next market open.
-* 📈 **Technicals:** Interactive charts with Bollinger Bands & News markers.
-* 📝 **Data Explorer:** Raw view of the database.
+* **Stack:** Streamlit + Plotly
 
+**Tabs**
 
+* 🔮 **Watchlist** — High-confidence upcoming signals
+* 📈 **Technicals** — Interactive charts with indicators & news markers
+* 🗂 **Data Explorer** — Raw database inspection
 
 ---
 
@@ -91,61 +140,102 @@ This is the brain of the operation. It consists of three parts:
 ### Prerequisites
 
 * Python 3.12+
-* MySQL Server (Local or Remote)
-* *(Optional)* NVIDIA GPU for faster FinBERT processing.
+* MySQL Server
+* *(Optional)* NVIDIA GPU for accelerated FinBERT inference
 
-### 1. Clone & Install
-bash git clone [https://github.com/yourusername/financial-sentiment-ai.git](https://github.com/yourusername/financial-sentiment-ai.git) cd financial-sentiment-ai pip install -r requirements.txt
-### 2. Database Config
-
-Create a `.env` file or update `db_mysql.py` with your credentials:
-python DB_CONFIG = { 'host': 'localhost', 'user': 'root', 'password': 'your_password', 'database': 'sentiment_db' }
 ---
 
-## 🚦 Usage Guide (The Pipeline)
+### Clone & Install
 
-Run these commands in order to build your database and train the brain.
+```bash
+git clone https://github.com/yourusername/financial-sentiment-ai.git
+cd financial-sentiment-ai
+pip install -r requirements.txt
+```
 
-### Step 1: Build the Dataset
-bash # 1. Scrape News python phase1_headline_scraper.py # 2. Score Sentiment python phase2_sentiment_analysis.py # 3. Fetch Prices & Patch Weekends python phase3_price_integration.py
-### Step 2: Train the AI
-bash # Train the Gatekeeper (Signal vs Noise) python phase4_classifier_mysql.py eod
-*Look for "Precision" in the logs. >60% is good.*
+---
 
-### Step 3: Run Live Inference
-bash # Grade the latest news using the trained model python phase4_backfill_predictions.py
-*Run this continuously or via cron job to keep dashboard fresh.*
+### Database Configuration
 
-### Step 4: Launch Dashboard
-bash streamlit run phase5_dashboard.py
+Update credentials in `db_mysql.py` or via `.env`:
+
+```python
+DB_CONFIG = {
+    "host": "localhost",
+    "user": "root",
+    "password": "your_password",
+    "database": "sentiment_db"
+}
+```
+
+---
+
+## 🚦 Running the Pipeline
+
+### Step 1 — Build Dataset
+
+```bash
+python phase1_headline_scraper.py
+python phase2_sentiment_analysis.py
+python phase3_price_integration.py
+```
+
+---
+
+### Step 2 — Train Gatekeeper
+
+```bash
+python phase4_classifier_mysql.py eod
+```
+
+> Precision >60% is strong for financial signal classification.
+
+---
+
+### Step 3 — Live Inference
+
+```bash
+python phase4_backfill_predictions.py
+```
+
+Run continuously or via cron.
+
+---
+
+### Step 4 — Launch Dashboard
+
+```bash
+streamlit run phase5_dashboard.py
+```
+
 ---
 
 ## 📊 Interpreting the Dashboard
 
-The dashboard uses a binary **"Signal vs. Noise"** logic to keep decisions simple.
+This system uses a **binary Signal vs. Noise decision framework**.
 
-* **Confidence Score (`ml_confidence`):**
-* 🟢 **Green (Signal):** **High Confidence (> 0.60).** The AI has identified a pattern that historically leads to price movement. **Actionable.**
-* ⚪ **Grey (Noise):** **Low Confidence (< 0.60).** The AI believes this news is fluff, clickbait, or irrelevant to price action. **Ignore.**
+### Confidence Score (`ml_confidence`)
 
+* 🟢 **Green — Signal (> 0.60)**
+  High likelihood of price impact. **Actionable.**
 
-* **"The Sunday Effect":**
-* If viewing on a weekend, you may see multiple articles with identical confidence scores. This is normal behavior for the "Weekend Patch" logic as market technicals are frozen until Monday open.
+* ⚪ **Grey — Noise (< 0.60)**
+  Likely irrelevant or clickbait. **Ignore.**
 
+### Weekend Behavior
 
+On weekends, identical confidence scores may appear due to frozen technical indicators. This is expected behavior from the **Weekend Patch** logic.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please submit a Pull Request or open an Issue for discussion.
+Pull Requests and Issues are welcome.
+
+---
 
 ## 📄 License
 
 MIT License. See `LICENSE` for details.
 
 ---
-
-## 📧 Contact
-
-For questions or feedback, please open an issue on GitHub.
