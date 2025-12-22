@@ -129,11 +129,11 @@ The pipeline is modular. Each phase builds upon the last, with all data stored i
 
 ## 🧠 NLP Engine Internals
 
-### `integrated_processor.py`
+## `integrated_processor.py`
 
 * Orchestrates weighted voting across FinBERT, VADER, and custom dictionary
 
-### `sentiment_scorer.py`
+## `sentiment_scorer.py`
 
 * Specialized wrapper for Hugging Face **ProsusAI/finbert** and VADER
 
