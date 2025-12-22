@@ -1,5 +1,3 @@
----
-
 # Integrated Financial Sentiment Analyzer & Dashboard
 
 A professional-grade, full-stack financial analysis system that transforms raw news headlines into actionable trading signals. It leverages an ensemble of NLP models (FinBERT, VADER, Custom ML) and a robust **Gatekeeper (Binary Classifier)** to filter out market noise—ensuring you only see high-confidence opportunities.
@@ -25,6 +23,9 @@ Most sentiment analyzers fail because they treat every news article as important
 ---
 
 ## ⭐ Key Features
+
+* **Smart Ticker Filtering**
+  Pre-scans the market to target only tickers with active news coverage, optimizing resources.
 
 * **Ensemble NLP Engine**
   Combines **FinBERT** (financial LLM), **VADER**, and a **custom dictionary** for nuanced sentiment scoring.
@@ -52,13 +53,23 @@ The pipeline is modular. Each phase builds upon the last, with all data stored i
 
 ## 📂 Core Pipeline (Phases)
 
+### Phase 0 — Preparation
+
+**Script:** `ticker_filter.py`
+
+* **Role:** Optimization & Targeting
+* **Tech:** `requests`, `BeautifulSoup`
+* **Function:** Scans the market (via Finviz or similar) to generate an optimized list of active tickers (`tickers_with_news.json`). Prevents the scraper from wasting time on inactive stocks.
+
+---
+
 ### Phase 1 — Data Ingestion
 
 **Script:** `phase1_headline_scraper.py`
 
 * **Role:** Data Ingestor
 * **Tech:** `concurrent.futures`, `requests`
-* **Function:** Monitors hundreds of tickers, scrapes headlines, handles duplicates and rate limits
+* **Function:** Monitors the filtered list of tickers, scrapes headlines, and handles duplicates and rate limits.
 
 ---
 
@@ -80,7 +91,6 @@ The pipeline is modular. Each phase builds upon the last, with all data stored i
 * **Role:** Context Provider
 * **Tech:** `yfinance`, `pandas_ta`
 * **Function:**
-
   * Fetches OHLCV data
   * Computes RSI, MACD, Bollinger Bands
   * Applies **Weekend Patch** (maps weekend news to last market close)
@@ -120,7 +130,6 @@ The pipeline is modular. Each phase builds upon the last, with all data stored i
 
 * **Tech:** Streamlit, Plotly
 * **Views:**
-
   * 🔮 Watchlist (Green Signals)
   * 📈 Technical Charts
   * 🗂 Data Explorer
@@ -129,20 +138,15 @@ The pipeline is modular. Each phase builds upon the last, with all data stored i
 
 ## 🧠 NLP Engine Internals
 
-## `integrated_processor.py`
-
-* Orchestrates weighted voting across FinBERT, VADER, and custom dictionary
-
-## `sentiment_scorer.py`
-
-* Specialized wrapper for Hugging Face **ProsusAI/finbert** and VADER
+* **`integrated_processor.py`**: Orchestrates weighted voting across FinBERT, VADER, and custom dictionary.
+* **`sentiment_scorer.py`**: Specialized wrapper for Hugging Face **ProsusAI/finbert** and VADER.
 
 ---
 
 ## 🛠️ Utilities & Data Management
 
-* **`unified_price_scripts.py`** — Cached, rate-safe price retrieval
-* **`db_mysql.py`** — Central database handler (schema + connections)
+* **`unified_price_scripts.py`**: Cached, rate-safe price retrieval.
+* **`db_mysql.py`**: Central database handler (schema + connections).
 
 ---
 
@@ -159,8 +163,9 @@ The pipeline is modular. Each phase builds upon the last, with all data stored i
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/kvesu/Integrated-Sentiment-Analyzer-With-Dashboard.git
+git clone [https://github.com/kvesu/Integrated-Sentiment-Analyzer-With-Dashboard.git](https://github.com/kvesu/Integrated-Sentiment-Analyzer-With-Dashboard.git)
 cd Integrated-Sentiment-Analyzer-With-Dashboard
+
 ```
 
 ---
@@ -169,6 +174,7 @@ cd Integrated-Sentiment-Analyzer-With-Dashboard
 
 ```bash
 pip install -r requirements.txt
+
 ```
 
 > If using an NVIDIA GPU, install PyTorch with CUDA support separately for best performance.
@@ -185,6 +191,7 @@ MYSQL_USER=root
 MYSQL_PASSWORD=your_password
 MYSQL_DATABASE=sentiment_db
 MYSQL_PORT=3306
+
 ```
 
 ---
@@ -193,28 +200,39 @@ MYSQL_PORT=3306
 
 Run the pipeline **in order**.
 
+### Step 0 — Prepare Tickers
+
+```bash
+python ticker_filter.py
+
+```
+
 ### Step 1 — Scrape Headlines
 
 ```bash
 python phase1_headline_scraper.py
+
 ```
 
 ### Step 2 — Sentiment Analysis
 
 ```bash
 python phase2_sentiment_analysis.py
+
 ```
 
 ### Step 3 — Market Data Sync
 
 ```bash
 python phase3_price_integration.py
+
 ```
 
 ### Step 4 — Train Gatekeeper
 
 ```bash
 python phase4_classifier_mysql.py eod
+
 ```
 
 > Look for **precision > 60%** in the logs.
@@ -223,6 +241,7 @@ python phase4_classifier_mysql.py eod
 
 ```bash
 python phase4_backfill_predictions.py
+
 ```
 
 Run continuously or via cron.
@@ -231,6 +250,7 @@ Run continuously or via cron.
 
 ```bash
 streamlit run phase5_dashboard.py
+
 ```
 
 ---
@@ -242,10 +262,9 @@ This system uses a **binary Signal vs. Noise** framework.
 ### Confidence Score (`ml_confidence`)
 
 * 🟢 **Green — Signal (> 0.60)**
-  High likelihood of price impact. **Actionable.**
-
+High likelihood of price impact. **Actionable.**
 * ⚪ **Grey — Noise (< 0.60)**
-  Likely fluff or irrelevant. **Ignore.**
+Likely fluff or irrelevant. **Ignore.**
 
 ### The Sunday Effect
 
@@ -269,4 +288,6 @@ MIT License.
 
 For questions or feedback, please open an issue on GitHub.
 
----
+```
+
+```
