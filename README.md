@@ -1,9 +1,3 @@
-Here is the updated, comprehensive README. It uses your template but expands it to showcase every file you uploaded, documents the new "Weekend Patch" and "Anti-Overfitting" logic, and includes the critical Inference (Backfill) step.
-
-You can copy this directly into your README.md.
-
-Markdown
-
 # Integrated Financial Sentiment Analyzer & Dashboard
 
 A professional-grade, full-stack financial analysis system that transforms raw news headlines into actionable trading signals. It leverages an ensemble of NLP models (FinBERT, VADER, Custom ML) and a robust "Gatekeeper" classifier to filter out market noise, ensuring you only see high-confidence opportunities.
