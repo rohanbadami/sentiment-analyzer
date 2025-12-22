@@ -13,7 +13,7 @@ from integrated_processor import FinancialSentimentProcessor
 
 # === CONFIGURATION ===
 BATCH_SIZE = 5000
-MAX_WORKERS = 4
+MAX_WORKERS = 8 # Set to how many CPU cores available on your machine
 CONFIDENCE_THRESHOLD = 0.40  # Threshold to mark as 'Signal' for the dashboard
 
 # Setup Logging
