@@ -24,15 +24,15 @@ def get_data_statistics(engine):
         result = conn.execute(text("SELECT COUNT(*) FROM articles WHERE sentiment_combined IS NOT NULL"))
         stats['with_sentiment'] = result.scalar()
         
-        # Articles with price data
-        result = conn.execute(text("SELECT COUNT(*) FROM articles WHERE `Close` IS NOT NULL"))
+        # Articles with price data (FIXED: Pointing to new 'price_close' column)
+        result = conn.execute(text("SELECT COUNT(*) FROM articles WHERE price_close IS NOT NULL"))
         stats['with_price'] = result.scalar()
         
         # Articles with BOTH
         result = conn.execute(text("""
             SELECT COUNT(*) FROM articles 
             WHERE sentiment_combined IS NOT NULL 
-            AND `Close` IS NOT NULL
+            AND price_close IS NOT NULL
         """))
         stats['complete'] = result.scalar()
         
@@ -45,16 +45,10 @@ def get_data_statistics(engine):
 def export_db_to_csv(export_type='all'):
     """
     Export database to CSV.
-    
-    Args:
-        export_type: 'all', 'complete', or 'predicted'
-            - 'all': All articles (may have missing data)
-            - 'complete': Only articles with sentiment AND price data
-            - 'predicted': Only articles with ML predictions
     """
     engine = get_engine()
     
-    logger.info("🚀 Starting Database Export...")
+    logger.info("🚀 Starting Database Export (Updated Schema)...")
     logger.info(f"📊 Export Type: {export_type}")
     
     # Show statistics first
@@ -69,7 +63,8 @@ def export_db_to_csv(export_type='all'):
     # Build WHERE clause based on export type
     where_clause = ""
     if export_type == 'complete':
-        where_clause = "WHERE sentiment_combined IS NOT NULL AND `Close` IS NOT NULL"
+        # FIXED: Use price_close
+        where_clause = "WHERE sentiment_combined IS NOT NULL AND price_close IS NOT NULL"
         output_file = "dataset_complete.csv"
     elif export_type == 'predicted':
         where_clause = "WHERE sentiment_category IS NOT NULL"
@@ -77,7 +72,7 @@ def export_db_to_csv(export_type='all'):
     else:
         output_file = OUTPUT_FILE
     
-    # Main query - selecting useful columns
+    # Main query - FIXED column mapping
     query = text(f"""
         SELECT 
             id,
@@ -94,15 +89,18 @@ def export_db_to_csv(export_type='all'):
             headline_sentiment,
             sentiment_vader,
             
-            -- Market Data
-            `Close` as price_close,
-            `Open` as price_open,
-            `High` as price_high,
-            `Low` as price_low,
-            `Volume` as volume,
-            `Adj_Close` as adj_close,
+            -- Market Data (FIXED: No longer aliasing 'Close', selecting real columns)
+            price_close,
+            price_open,
+            price_high,
+            price_low,
+            volume,
+            
+            -- Outcomes
             pct_change_eod,
             pct_change_eow,
+            pct_change_1h,  -- Added Phase 3 outcome
+            pct_change_4h,  -- Added Phase 3 outcome
             
             -- Technical Indicators
             rsi_14,
@@ -151,12 +149,13 @@ def export_db_to_csv(export_type='all'):
                 
         logger.info(f"\n✅ Export Complete!")
         logger.info(f"📁 Saved {total_rows:,} rows to '{output_file}'")
-        logger.info(f"💾 File size: ~{total_rows * 0.001:.1f} MB (estimated)")
         
         # Show sample of what was exported
         logger.info("\n📋 Sample of exported data:")
-        sample = pd.read_csv(output_file, nrows=3)
-        print(sample[['ticker', 'datetime', 'sentiment_combined', 'price_close', 'sentiment_category']].to_string())
+        if total_rows > 0:
+            sample = pd.read_csv(output_file, nrows=3)
+            # Show relevant columns to verify price data
+            print(sample[['ticker', 'datetime', 'price_close', 'sentiment_combined']].to_string())
         
     except Exception as e:
         logger.error(f"❌ Export Failed: {e}")
@@ -164,18 +163,10 @@ def export_db_to_csv(export_type='all'):
         traceback.print_exc()
 
 def main():
-    """
-    Usage:
-        python export_db_to_csv_enhanced.py           # Export all
-        python export_db_to_csv_enhanced.py complete  # Only complete records
-        python export_db_to_csv_enhanced.py predicted # Only ML predictions
-    """
     export_type = sys.argv[1] if len(sys.argv) > 1 else 'all'
-    
     if export_type not in ['all', 'complete', 'predicted']:
         logger.error("Invalid export type. Use: 'all', 'complete', or 'predicted'")
         return
-    
     export_db_to_csv(export_type)
 
 if __name__ == "__main__":
