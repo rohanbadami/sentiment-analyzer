@@ -12,25 +12,23 @@ from db_mysql import get_engine
 st.set_page_config(page_title="Financial Sentiment Dashboard", layout="wide")
 
 # === DATA LOADING ===
-@st.cache_data(ttl=60)  # Cache data for 1 minute
+@st.cache_data(ttl=60)
 def load_data():
     engine = get_engine()
-    
-    # FIXED QUERY: Uses `Close` as price_close to match your DB schema
+    # FIXED QUERY: Selects columns directly by their real names
     query = """
     SELECT 
         id, ticker, datetime, headline, url,
         sentiment_combined, sentiment_category, ml_confidence,
-        `Close` as price_close, pct_change_eod,
-        rsi_14, vix_close
+        price_close, price_open, price_high, price_low, volume,
+        pct_change_eod, rsi_14, vix_close,
+        std_upper, std_lower, macd, macd_hist
     FROM articles
     ORDER BY datetime DESC
     LIMIT 2000
     """
-    
     with engine.connect() as conn:
         df = pd.read_sql(query, conn)
-        
     return df
 
 # === SIDEBAR FILTERS ===
@@ -39,7 +37,7 @@ st.sidebar.header("🔍 Filters")
 try:
     df = load_data()
 except Exception as e:
-    st.error(f"Database Connection Error: {e}")
+    st.error(f"⚠️ Database Error: {e}")
     st.stop()
 
 # 1. Ticker Filter
@@ -47,14 +45,18 @@ all_tickers = ["All"] + sorted(df['ticker'].dropna().unique().tolist())
 selected_ticker = st.sidebar.selectbox("Select Ticker", all_tickers)
 
 # 2. Gatekeeper Filter
-if 'sentiment_category' in df.columns:
-    categories = ["All"] + sorted(df['sentiment_category'].dropna().unique().tolist())
-else:
-    categories = ["All"]
+df['sentiment_category'] = df['sentiment_category'].fillna("Unprocessed")
+cats = df['sentiment_category'].unique().tolist()
+categories = ["All"] + sorted(cats)
 selected_category = st.sidebar.selectbox("Sentiment Category", categories)
 
 # 3. Confidence Threshold
 min_conf = st.sidebar.slider("Minimum AI Confidence", 0.0, 1.0, 0.5)
+
+# 4. Refresh Button
+if st.sidebar.button("🔄 Refresh Data"):
+    st.cache_data.clear()
+    st.rerun()
 
 # === APPLY FILTERS ===
 filtered_df = df.copy()
@@ -62,51 +64,51 @@ filtered_df = df.copy()
 if selected_ticker != "All":
     filtered_df = filtered_df[filtered_df['ticker'] == selected_ticker]
 
-if selected_category != "All" and 'sentiment_category' in filtered_df.columns:
+if selected_category != "All":
     filtered_df = filtered_df[filtered_df['sentiment_category'] == selected_category]
 
 if 'ml_confidence' in filtered_df.columns:
-    filtered_df = filtered_df[filtered_df['ml_confidence'] >= min_conf]
+    filtered_df = filtered_df[filtered_df['ml_confidence'].fillna(0) >= min_conf]
 
 # === MAIN DASHBOARD ===
 st.title("🚀 AI Financial Sentiment Dashboard")
 
-# Top Metrics Row
+# Top Metrics
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Total Articles", len(filtered_df))
-col2.metric("High Confidence Signals", len(filtered_df[filtered_df['sentiment_category'] == 'Signal']) if 'sentiment_category' in filtered_df.columns else 0)
-col3.metric("Avg Sentiment", f"{filtered_df['sentiment_combined'].mean():.2f}")
-col4.metric("Latest Market VIX", f"{filtered_df['vix_close'].iloc[0] if not filtered_df.empty and 'vix_close' in filtered_df.columns else 'N/A'}")
+col2.metric("High Confidence Signals", len(filtered_df[filtered_df['sentiment_category'] == 'Signal']))
+avg_sent = filtered_df['sentiment_combined'].mean() if not filtered_df.empty else 0
+col3.metric("Avg Sentiment", f"{avg_sent:.2f}")
+latest_vix = filtered_df['vix_close'].iloc[0] if not filtered_df.empty and 'vix_close' in filtered_df.columns else 0
+col4.metric("Market VIX", f"{latest_vix:.2f}")
 
-# === SECTION 1: TOMORROW'S WATCHLIST ===
-st.subheader("🔮 Top Picks for Next Market Open")
-st.caption("Articles from the weekend (or post-market) with High AI Confidence")
+st.markdown("---")
 
-# Filter for rows with NO price change yet (Inference rows)
-# We check if pct_change_eod is NULL (NaN)
-if 'pct_change_eod' in filtered_df.columns:
-    watchlist = filtered_df[filtered_df['pct_change_eod'].isna()]
-    
-    if 'ml_confidence' in watchlist.columns:
-        watchlist = watchlist.sort_values(by='ml_confidence', ascending=False)
+# --- SECTION 1: WATCHLIST ---
+st.header("🔮 Top Picks for Next Market Open")
+st.caption("Articles with High AI Confidence waiting for market reaction")
 
-    if not watchlist.empty:
-        display_cols = ['ticker', 'datetime', 'headline', 'sentiment_combined', 'ml_confidence', 'sentiment_category']
-        # Filter for cols that actually exist in the dataframe
-        display_cols = [c for c in display_cols if c in watchlist.columns]
-        
-        st.dataframe(
-            watchlist[display_cols].head(10),
-            use_container_width=True,
-            column_config={
-                "ml_confidence": st.column_config.ProgressColumn("AI Confidence", format="%.2f", min_value=0, max_value=1),
-                "sentiment_combined": st.column_config.NumberColumn("Sentiment", format="%.2f"),
-            }
-        )
-    else:
-        st.info("No active watchlist items found (all loaded articles have past price data).")
+# Filter for Inference Rows (No Future Price Yet)
+watchlist = filtered_df[filtered_df['pct_change_eod'].isna()]
 
-# === SECTION 2: VISUAL ANALYSIS ===
+if not watchlist.empty:
+    watchlist = watchlist.sort_values(by='ml_confidence', ascending=False)
+    display_cols = ['ticker', 'datetime', 'headline', 'sentiment_combined', 'ml_confidence', 'sentiment_category']
+    st.dataframe(
+        watchlist[display_cols].head(20),
+        use_container_width=True,
+        column_config={
+            "ml_confidence": st.column_config.ProgressColumn("Confidence", min_value=0, max_value=1, format="%.2f"),
+            "sentiment_combined": st.column_config.NumberColumn("Sentiment", format="%.2f")
+        }
+    )
+else:
+    st.info("No active watchlist items found (all loaded articles have past price data).")
+
+st.markdown("---")
+
+# --- SECTION 2: AI INSIGHTS ---
+st.header("📊 AI Insights & Distribution")
 col_left, col_right = st.columns(2)
 
 with col_left:
@@ -122,25 +124,62 @@ with col_right:
             filtered_df, 
             x="sentiment_combined", 
             y="ml_confidence", 
-            color="sentiment_category" if 'sentiment_category' in filtered_df.columns else None,
+            color="sentiment_category",
             hover_data=["ticker", "headline"],
             title="Does the AI trust the Sentiment?",
-            color_discrete_map={"Signal": "green", "Noise": "gray"}
+            color_discrete_map={"Signal": "green", "Noise": "gray", "Unprocessed": "blue"}
         )
         st.plotly_chart(fig_scatter, use_container_width=True)
 
-# === SECTION 3: RAW DATA EXPLORER ===
-st.subheader("📝 Data Explorer")
-explore_cols = ['id', 'ticker', 'datetime', 'headline', 'sentiment_combined', 'rsi_14', 'vix_close', 'price_close']
-explore_cols = [c for c in explore_cols if c in filtered_df.columns]
+st.markdown("---")
 
-st.dataframe(
-    filtered_df[explore_cols], 
-    use_container_width=True, 
-    height=400
-)
+# --- SECTION 3: TECHNICAL CHARTS ---
+st.header("📈 Technical Analysis & Price Action")
 
-# === SIDEBAR REFRESH BUTTON ===
-if st.sidebar.button("🔄 Refresh Data"):
-    st.cache_data.clear()
-    st.rerun()
+if selected_ticker == "All":
+    st.info("👈 Please select a specific Ticker in the sidebar to view Technical Charts.")
+else:
+    # Sort by date for charting
+    chart_df = filtered_df.sort_values("datetime", ascending=True)
+    
+    # Create Candlestick with Bollinger Bands
+    fig = go.Figure()
+
+    # 1. Candlestick
+    fig.add_trace(go.Candlestick(
+        x=chart_df['datetime'],
+        open=chart_df['price_open'], high=chart_df['price_high'],
+        low=chart_df['price_low'], close=chart_df['price_close'],
+        name="Price"
+    ))
+
+    # 2. Bollinger Bands
+    if 'std_upper' in chart_df.columns:
+        fig.add_trace(go.Scatter(
+            x=chart_df['datetime'], y=chart_df['std_upper'],
+            line=dict(color='gray', width=1), name="Upper Band"
+        ))
+        fig.add_trace(go.Scatter(
+            x=chart_df['datetime'], y=chart_df['std_lower'],
+            line=dict(color='gray', width=1), fill='tonexty', name="Lower Band"
+        ))
+
+    fig.update_layout(height=600, title=f"{selected_ticker} - Price vs. News Events", xaxis_rangeslider_visible=False)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # 3. RSI / MACD Sub-chart
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        if 'rsi_14' in chart_df.columns:
+            st.line_chart(chart_df.set_index("datetime")['rsi_14'])
+            st.caption("RSI (14)")
+    with col_t2:
+        if 'macd' in chart_df.columns:
+            st.line_chart(chart_df.set_index("datetime")['macd'])
+            st.caption("MACD")
+
+st.markdown("---")
+
+# --- SECTION 4: DATA EXPLORER ---
+st.header("📝 Raw Data Inspector")
+st.dataframe(filtered_df, use_container_width=True)

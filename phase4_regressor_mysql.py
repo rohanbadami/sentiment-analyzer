@@ -227,6 +227,35 @@ def train_regressor(df, target_col):
     
     return model, scaler, imputer, available_features
 
+def patch_weekend_data(df):
+    """
+    Logic: If a row is on a weekend (Sat/Sun), forward-fill market data 
+    from the last available trading day (Friday).
+    """
+    logger.info("🛠️ Patching weekend data: Syncing Sat/Sun market features to Friday close...")
+    
+    # 1. Ensure strictly sorted by time so ffill works correctly
+    df = df.sort_values(by='datetime').reset_index(drop=True)
+    
+    # 2. List of Market/Technical columns to carry forward
+    # (Do NOT patch 'sentiment' or 'headline'—those are specific to the article)
+    market_cols = [
+        "price_vs_sma50", "rsi_14", "macd", "macd_hist", 
+        "vix_close", "spy_daily_return", "std_channel_width", 
+        "hour_sin", "hour_cos"
+    ]
+    
+    # Filter for columns that actually exist in this dataframe
+    cols_to_patch = [c for c in market_cols if c in df.columns]
+    
+    if not cols_to_patch:
+        return df
+
+    # 3. Forward Fill specific columns
+    df[cols_to_patch] = df[cols_to_patch].ffill()
+    
+    return df
+
 def main():
     target_horizon = sys.argv[1].lower() if len(sys.argv) > 1 else "eod"
     target_col = TARGET_MAP.get(target_horizon, "pct_change_eod")
@@ -260,6 +289,10 @@ def main():
         logger.error(f"❌ Not enough data! Only {len(df)} rows found.")
         return
     
+    # --- WEEKEND PATCH ---
+    df = patch_weekend_data(df)
+    # ---------------------
+
     logger.info(f"✅ Loaded {len(df)} training samples")
     
     # 4. Add Gatekeeper Confidence Scores

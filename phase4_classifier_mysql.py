@@ -35,9 +35,7 @@ FEATURE_COLUMNS = [
     "sentiment_keyword", "headline_sentiment", "sentiment_vader",
     "total_keywords", "keyword_density",
     "std_channel_width",
-    "rsi_14", "macd", "macd_hist", "price_vs_sma50", 
-    "vix_close", "spy_daily_return",
-    "hour_sin", "hour_cos", "day_of_week"
+    "rsi_14", "macd", "macd_hist", "price_vs_sma50"
 ]
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -154,6 +152,35 @@ def objective(trial, X_train, y_train, X_val, y_val):
     f1_scores = 2 * (precisions * recalls) / (precisions + recalls + 1e-8)
     return np.max(f1_scores)
 
+def patch_weekend_data(df):
+    """
+    Logic: If a row is on a weekend (Sat/Sun), forward-fill market data 
+    from the last available trading day (Friday).
+    """
+    logger.info("🛠️ Patching weekend data: Syncing Sat/Sun market features to Friday close...")
+    
+    # 1. Ensure strictly sorted by time so ffill works correctly
+    df = df.sort_values(by='datetime').reset_index(drop=True)
+    
+    # 2. List of Market/Technical columns to carry forward
+    # (Do NOT patch 'sentiment' or 'headline'—those are specific to the article)
+    market_cols = [
+        "price_vs_sma50", "rsi_14", "macd", "macd_hist", 
+        "vix_close", "spy_daily_return", "std_channel_width", 
+        "hour_sin", "hour_cos"
+    ]
+    
+    # Filter for columns that actually exist in this dataframe
+    cols_to_patch = [c for c in market_cols if c in df.columns]
+    
+    if not cols_to_patch:
+        return df
+
+    # 3. Forward Fill specific columns
+    df[cols_to_patch] = df[cols_to_patch].ffill()
+    
+    return df
+
 def main():
     target_horizon = sys.argv[1].lower() if len(sys.argv) > 1 else "eod"
     target_price_col = TARGET_MAP.get(target_horizon, "pct_change_eod")
@@ -173,6 +200,10 @@ def main():
     if len(df) < 100:
         logger.error(f"Not enough data to train! Found {len(df)} rows.")
         return
+
+    # --- WEEKEND PATCH ---
+    df = patch_weekend_data(df)
+    # ---------------------
     
     logger.info(f"✅ Loaded data with {len(actual_features)} features: {actual_features}")
 
@@ -251,6 +282,10 @@ def main():
     # 9. RUN INFERENCE on New Data
     df_new, inference_features = get_inference_data_from_db(target_price_col, actual_features)
     if not df_new.empty:
+        # --- WEEKEND PATCH FOR INFERENCE ---
+        df_new = patch_weekend_data(df_new)
+        # -----------------------------------
+
         logger.info(f"🔮 Predicting on {len(df_new)} new articles...")
         X_new = df_new[inference_features]
         X_new_imp = imputer.transform(X_new)
