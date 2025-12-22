@@ -1,10 +1,15 @@
-Here is the **entire README fully converted to Markdown**, with the **correct title applied** and **ready to paste directly into `README.md`**.
+Perfect — I verified the repo you linked: **[https://github.com/kvesu/Integrated-Sentiment-Analyzer-With-Dashboard](https://github.com/kvesu/Integrated-Sentiment-Analyzer-With-Dashboard)**. This is the exact project we just formatted a README for. ([GitHub][1])
+
+Here is the **full Markdown README you can paste directly into your repo’s `README.md`**, now updated with your GitHub link included and polished:
 
 ---
 
+````markdown
 # Integrated Financial Sentiment Analyzer & Dashboard
 
 A professional-grade, full-stack financial analysis system that transforms raw news headlines into actionable trading signals. It leverages an ensemble of NLP models (FinBERT, VADER, Custom ML) and a robust **Gatekeeper (Binary Classifier)** to filter out market noise—ensuring you only see high-confidence opportunities.
+
+[**View on GitHub**](https://github.com/kvesu/Integrated-Sentiment-Analyzer-With-Dashboard)  
 
 ![Status](https://img.shields.io/badge/Status-Active-success)
 ![Python](https://img.shields.io/badge/Python-3.12%2B-blue)
@@ -18,30 +23,29 @@ A professional-grade, full-stack financial analysis system that transforms raw n
 
 Most sentiment analyzers fail because they treat every news article as important. This system is different. It implements a strict **Signal vs. Noise** philosophy:
 
-1. **Ingests** thousands of financial news headlines continuously
-2. **Scores** them using financial-specific NLP models (FinBERT, VADER, Custom ML)
-3. **Validates** sentiment against historical market behavior
-4. **Filters** headlines using a trained **Gatekeeper AI** that rejects ~90% of noise
-5. **Visualizes** only **high-confidence signals** in a real-time dashboard
+1. **Ingests** thousands of financial news headlines continuously  
+2. **Scores** them using financial-specific NLP models (FinBERT, VADER, Custom ML)  
+3. **Validates** sentiment against historical market behavior  
+4. **Filters** headlines using a trained **Gatekeeper AI** that rejects ~90% of noise  
+5. **Visualizes** only **high-confidence signals** in a real-time dashboard  
 
 ---
 
 ## ⭐ Key Features
 
-* **Ensemble NLP Engine**
+- **Ensemble NLP Engine**  
   Combines **FinBERT** (financial LLM), **VADER**, and a **custom sentiment model** for nuanced scoring.
 
-* **Gatekeeper Binary Classifier**
-  A LightGBM model trained to predict whether news will *actually* move price.
-  Achieves **~68% precision** on actionable signals.
+- **Gatekeeper Binary Classifier**  
+  A LightGBM model trained to predict whether news will *actually* move price, achieving **~68% precision** on actionable signals.
 
-* **Robust Data Engineering**
+- **Robust Data Engineering**  
   Includes a custom **Weekend Patch** that maps weekend news to Friday’s close to prevent missing market context.
 
-* **Technical Market Context**
+- **Technical Market Context**  
   Automatically computes RSI (14), MACD, Bollinger Bands, SMA-50, and volatility context.
 
-* **Live Analytics Dashboard**
+- **Live Analytics Dashboard**  
   Built with **Streamlit + Plotly**, offering Watchlists, Technical Charts, and AI-driven insights.
 
 ---
@@ -59,7 +63,7 @@ graph TD
     B --> E[AI Gatekeeper]
     E -->|Confidence Scores| B
     B --> F[Streamlit Dashboard]
-```
+````
 
 ---
 
@@ -77,9 +81,10 @@ graph TD
 
 * **Script:** `phase2_sentiment_analysis.py`
 * Uses an `IntegratedProcessor` pipeline
-* **FinBERT:** Financial nuance
-* **VADER:** General market tone
-* **Custom ML:** Dataset-adaptive learning
+
+  * **FinBERT:** Financial nuance
+  * **VADER:** General market tone
+  * **Custom ML:** Dataset-adaptive learning
 
 **Output:**
 
@@ -92,7 +97,7 @@ graph TD
 * **Script:** `phase3_price_integration.py`
 * Fetches OHLCV data using `yfinance`
 * **Weekend Patch:** Assigns weekend news to last market close (Friday)
-* Computes:
+* **Computed Indicators:**
 
   * RSI (14)
   * MACD
@@ -127,7 +132,7 @@ graph TD
 * **Script:** `phase5_dashboard.py`
 * **Stack:** Streamlit + Plotly
 
-**Tabs**
+**Dashboard Tabs:**
 
 * 🔮 **Watchlist** — High-confidence upcoming signals
 * 📈 **Technicals** — Interactive charts with indicators & news markers
@@ -139,7 +144,7 @@ graph TD
 
 ### Prerequisites
 
-* Python 3.12+
+* Python **3.12+**
 * MySQL Server
 * *(Optional)* NVIDIA GPU for accelerated FinBERT inference
 
@@ -148,8 +153,8 @@ graph TD
 ### Clone & Install
 
 ```bash
-git clone https://github.com/yourusername/financial-sentiment-ai.git
-cd financial-sentiment-ai
+git clone https://github.com/kvesu/Integrated-Sentiment-Analyzer-With-Dashboard.git
+cd Integrated-Sentiment-Analyzer-With-Dashboard
 pip install -r requirements.txt
 ```
 
@@ -172,7 +177,7 @@ DB_CONFIG = {
 
 ## 🚦 Running the Pipeline
 
-### Step 1 — Build Dataset
+### Step 1 — Build the Dataset
 
 ```bash
 python phase1_headline_scraper.py
@@ -230,7 +235,7 @@ On weekends, identical confidence scores may appear due to frozen technical indi
 
 ## 🤝 Contributing
 
-Pull Requests and Issues are welcome.
+Pull Requests and Issues are welcome!
 
 ---
 
@@ -239,3 +244,4 @@ Pull Requests and Issues are welcome.
 MIT License. See `LICENSE` for details.
 
 ---
+
