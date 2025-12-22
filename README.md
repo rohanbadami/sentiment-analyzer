@@ -228,10 +228,35 @@ python phase3_price_integration.py
 
 ```
 
-### Step 4 — Train Gatekeeper
+### Step 4 — Phase 4: AI Training & Inference (The Brain)
+Run these three scripts in order to train the models and generate live signals.
 
+**1. Train the Gatekeeper (Classifier)**
+*Learns to distinguish Signal from Noise.*
 ```bash
 python phase4_classifier_mysql.py eod
+
+```
+
+> *Look for **precision > 60%** in the logs.*
+
+**2. Train the Price Predictor (Regressor) [Optional]**
+*Learns to predict the magnitude of the move (e.g., +3.5%).*
+
+```bash
+python phase4_regressor_mysql.py eod
+
+```
+
+**3. Run Live Inference (The Worker)**
+*Applies the trained models to new data. Run this continuously.*
+
+```bash
+python phase4_backfill_predictions.py
+
+```
+
+```
 
 ```
 
