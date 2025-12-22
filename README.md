@@ -135,9 +135,11 @@ python phase3_price_integration.py
 
 View the real-time results in your browser.
 
-```bash
+```powershell
 streamlit run phase5_dashboard.py
 ```
+
+> **Note:** Use PowerShell for running the dashboard. Ensure `db_mysql.py` is properly configured with your database credentials before launching.
 
 ---
 
