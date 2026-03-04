@@ -49,3 +49,4 @@ matplotlib>=3.6.0
 seaborn>=0.12.0
 streamlit               # REQUIRED for phase5_dashboard.py
 plotly                  # REQUIRED for phase5_dashboard.py
+altair<5                # Pin to avoid streamlit import error on Python 3.13
