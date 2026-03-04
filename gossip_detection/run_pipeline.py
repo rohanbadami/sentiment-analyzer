@@ -249,7 +249,8 @@ def main():
     # Initialize components
     # ========================================================================
     try:
-        poller = RedditPoller(subreddits=None)  # Uses config defaults
+        from gossip_detection.config import SUBREDDITS
+        poller = RedditPoller(subreddits=SUBREDDITS)
         extractor = TickerExtractor()
         redis_client = GossipRedisClient()
         tracker = RollingTracker()
