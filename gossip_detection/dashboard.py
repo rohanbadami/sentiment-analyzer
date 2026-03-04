@@ -12,6 +12,10 @@ Real-time visualization of:
 Follows patterns from phase5_dashboard.py (caching, sidebar filters, Plotly charts).
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import logging
 import streamlit as st
 import pandas as pd
