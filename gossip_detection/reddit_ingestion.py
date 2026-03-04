@@ -285,11 +285,12 @@ class RedditPoller:
         newest_event_ts = all_events[-1].created_utc if all_events else None
         lag_seconds = (time.time() - newest_event_ts.timestamp()) if newest_event_ts else None
 
+        lag_str = f"{lag_seconds:.0f}s" if lag_seconds is not None else "N/A"
         logger.info(
             f"Poll cycle complete: "
             f"{len(all_events)} events fetched, "
             f"cycle_time={cycle_time_ms:.0f}ms, "
-            f"lag={lag_seconds:.0f}s" if lag_seconds else "N/A"
+            f"lag={lag_str}"
         )
 
         # Update checkpoint
