@@ -47,6 +47,6 @@ googlesearch-python>=1.2.0
 # --- Visualization & Dashboard ---
 matplotlib>=3.6.0
 seaborn>=0.12.0
-streamlit               # REQUIRED for phase5_dashboard.py
+streamlit>=1.28.0       # REQUIRED for phase5_dashboard.py (1.28+ supports Python 3.13)
 plotly                  # REQUIRED for phase5_dashboard.py
 altair<5                # Pin to avoid streamlit import error on Python 3.13
