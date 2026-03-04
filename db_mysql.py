@@ -25,6 +25,13 @@ def get_engine():
     connect_args = {}
     ssl_ca = os.getenv("MYSQL_SSL_CA")
     if ssl_ca:
+        # If the value looks like cert contents (not a file path), write to a temp file
+        if ssl_ca.strip().startswith("-----"):
+            import tempfile
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pem", mode="w")
+            tmp.write(ssl_ca)
+            tmp.close()
+            ssl_ca = tmp.name
         connect_args["ssl_ca"] = ssl_ca
         connect_args["ssl_verify_cert"] = True
 
