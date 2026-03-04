@@ -21,8 +21,19 @@ def get_engine():
     # Construct connection string
     # Ensure you have installed: pip install mysql-connector-python sqlalchemy
     connection_string = f"mysql+mysqlconnector://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+    connect_args = {}
+    ssl_ca = os.getenv("MYSQL_SSL_CA")
+    if ssl_ca:
+        connect_args["ssl_ca"] = ssl_ca
+        connect_args["ssl_verify_cert"] = True
+
     try:
-        engine = create_engine(connection_string, pool_recycle=3600)
+        engine = create_engine(
+            connection_string,
+            pool_recycle=3600,
+            connect_args=connect_args,
+        )
         return engine
     except Exception as e:
         print(f"Error creating engine: {e}")

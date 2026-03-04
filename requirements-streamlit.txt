@@ -1,0 +1,10 @@
+# Stripped-down dependencies for Streamlit Cloud (dashboard only).
+# No torch/transformers/lightgbm — avoids OOM on free tier.
+
+streamlit
+pandas>=1.5.0
+plotly
+sqlalchemy>=1.4.0
+mysql-connector-python
+python-dotenv
+redis
