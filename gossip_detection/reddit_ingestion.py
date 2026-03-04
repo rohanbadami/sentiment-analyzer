@@ -119,12 +119,13 @@ class RedditPoller:
             response.raise_for_status()
 
             data = response.json()
+            raw_count = len(data.get("data", []))
             for item in data.get("data", []):
                 event = RedditEvent.from_pullpush_json(item)
                 if event:
                     events.append(event)
 
-            logger.debug(f"Pullpush: {subreddit} -> {len(events)} posts")
+            logger.info(f"Pullpush posts [{subreddit}]: raw={raw_count}, parsed={len(events)}")
             return events
 
         except Exception as e:
@@ -141,12 +142,13 @@ class RedditPoller:
             response.raise_for_status()
 
             data = response.json()
+            raw_count = len(data.get("data", []))
             for item in data.get("data", []):
                 event = RedditEvent.from_arctic_shift_json(item)
                 if event:
                     events.append(event)
 
-            logger.debug(f"Arctic Shift: {subreddit} -> {len(events)} posts")
+            logger.info(f"Arctic Shift posts [{subreddit}]: raw={raw_count}, parsed={len(events)}")
             return events
 
         except Exception as e:
@@ -179,12 +181,13 @@ class RedditPoller:
             response.raise_for_status()
 
             data = response.json()
+            raw_count = len(data.get("data", []))
             for item in data.get("data", []):
                 event = RedditEvent.from_pullpush_json(item)
                 if event:
                     events.append(event)
 
-            logger.debug(f"Pullpush: {subreddit} -> {len(events)} comments")
+            logger.info(f"Pullpush comments [{subreddit}]: raw={raw_count}, parsed={len(events)}")
             return events
 
         except Exception as e:
@@ -201,12 +204,13 @@ class RedditPoller:
             response.raise_for_status()
 
             data = response.json()
+            raw_count = len(data.get("data", []))
             for item in data.get("data", []):
                 event = RedditEvent.from_arctic_shift_json(item)
                 if event:
                     events.append(event)
 
-            logger.debug(f"Arctic Shift: {subreddit} -> {len(events)} comments")
+            logger.info(f"Arctic Shift comments [{subreddit}]: raw={raw_count}, parsed={len(events)}")
             return events
 
         except Exception as e:
