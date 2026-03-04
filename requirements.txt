@@ -18,6 +18,7 @@ pyfinviz>=1.0.0
 SQLAlchemy>=1.4.0
 mysql-connector-python  # REQUIRED for mysql+mysqlconnector connection string
 python-dotenv           # REQUIRED for loading .env variables
+redis                   # REQUIRED for gossip_detection/redis_client.py
 
 # --- Machine Learning (User Specified) ---
 scikit-learn>=1.2.0
