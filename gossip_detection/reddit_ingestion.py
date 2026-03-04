@@ -119,6 +119,8 @@ class RedditPoller:
             response.raise_for_status()
 
             data = response.json()
+            if subreddit == self.subreddits[0]:
+                logger.info(f"Pullpush posts response keys: {list(data.keys())}, status={response.status_code}")
             raw_count = len(data.get("data", []))
             for item in data.get("data", []):
                 event = RedditEvent.from_pullpush_json(item)
