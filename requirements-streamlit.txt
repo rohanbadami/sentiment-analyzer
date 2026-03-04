@@ -2,6 +2,7 @@
 # No torch/transformers/lightgbm — avoids OOM on free tier.
 
 streamlit
+altair<5
 pandas>=1.5.0
 plotly
 sqlalchemy>=1.4.0
