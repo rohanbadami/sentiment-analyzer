@@ -19,7 +19,7 @@ import time
 from datetime import datetime
 
 from gossip_detection.config import POLL_INTERVAL_SECONDS, CHECKPOINT_FILE
-from gossip_detection.reddit_ingestion import RedditPoller
+from gossip_detection.xpoz_ingestion import XpozPoller
 from gossip_detection.ticker_extractor import TickerExtractor
 from gossip_detection.db_gossip import ensure_gossip_tables, bulk_insert_events, bulk_insert_mentions
 from gossip_detection.rolling_tracker import RollingTracker
@@ -46,7 +46,7 @@ def signal_handler(signum, frame):
 
 
 def run_cycle(
-    poller: RedditPoller,
+    poller: XpozPoller,
     extractor: TickerExtractor,
     redis_client: GossipRedisClient,
     scorer: GossipScorer,
@@ -63,7 +63,7 @@ def run_cycle(
     6. Store alerts
 
     Args:
-        poller: RedditPoller instance
+        poller: XpozPoller instance
         extractor: TickerExtractor instance
         redis_client: GossipRedisClient instance
         scorer: GossipScorer instance
@@ -250,7 +250,7 @@ def main():
     # ========================================================================
     try:
         from gossip_detection.config import SUBREDDITS
-        poller = RedditPoller(subreddits=SUBREDDITS)
+        poller = XpozPoller(subreddits=SUBREDDITS)
         extractor = TickerExtractor()
         redis_client = GossipRedisClient()
         tracker = RollingTracker()

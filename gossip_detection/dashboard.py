@@ -126,7 +126,7 @@ window_minutes = st.sidebar.slider(
     "Rolling Window (minutes)",
     min_value=5,
     max_value=60,
-    value=15,
+    value=60,
     step=5,
 )
 

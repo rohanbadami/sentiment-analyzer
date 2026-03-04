@@ -5,6 +5,7 @@ Provides RedditEvent dataclass with conversion methods from Pullpush.io and
 Arctic Shift API responses.
 """
 
+import uuid
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from typing import Optional, Any
@@ -109,6 +110,61 @@ class RedditEvent:
         )
 
         return event
+
+    @classmethod
+    def from_xpoz_json(cls, data: dict, post_type: str = "post") -> Optional["RedditEvent"]:
+        """
+        Parse a single Xpoz Reddit post or comment into a RedditEvent.
+
+        Uses multiple .get() fallbacks because Xpoz's exact JSON schema isn't
+        fully documented — field names are confirmed by inspecting raw responses.
+
+        Args:
+            data: JSON dict from Xpoz MCP tool response
+            post_type: "post" or "comment"
+
+        Returns:
+            RedditEvent instance or None if deleted/removed
+        """
+        author = data.get("author") or data.get("author_name", "")
+        if author in ("[deleted]", "[removed]", ""):
+            return None
+
+        text = data.get("selftext") or data.get("body") or data.get("text") or ""
+        if text in ("[deleted]", "[removed]"):
+            text = ""
+
+        raw_id = data.get("id") or data.get("reddit_id") or data.get("name", "")
+        prefix = "t3_" if post_type == "post" else "t1_"
+        reddit_id = raw_id if raw_id.startswith("t") else f"{prefix}{raw_id}"
+
+        created = data.get("created_utc") or data.get("created") or data.get("createdAtDate") or data.get("timestamp")
+        if isinstance(created, (int, float)):
+            created_dt = datetime.utcfromtimestamp(created)
+        elif isinstance(created, str):
+            try:
+                created_dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+            except Exception:
+                created_dt = datetime.utcnow()
+        else:
+            created_dt = datetime.utcnow()
+
+        return cls(
+            id=str(uuid.uuid4()),
+            reddit_id=reddit_id,
+            source="reddit",
+            subreddit=data.get("subreddit") or data.get("subreddit_name", ""),
+            author=author,
+            author_karma=data.get("author_karma") or data.get("link_karma"),
+            title=data.get("title") if post_type == "post" else None,
+            text=text,
+            post_type=post_type,
+            created_utc=created_dt,
+            upvotes=data.get("score") or data.get("upvotes") or data.get("ups") or 0,
+            num_comments=data.get("num_comments") or data.get("comments") or 0,
+            permalink=data.get("permalink") or data.get("url", ""),
+            raw_metadata=data,
+        )
 
     @classmethod
     def from_arctic_shift_json(cls, data: dict) -> Optional['RedditEvent']:

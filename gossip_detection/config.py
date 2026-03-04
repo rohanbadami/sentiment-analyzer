@@ -25,7 +25,7 @@ SUBREDDITS = [
 # ============================================================================
 # POLLING CONFIGURATION
 # ============================================================================
-POLL_INTERVAL_SECONDS = 60
+POLL_INTERVAL_SECONDS = 5400  # 90 minutes — 2 calls/cycle × 480 cycles/month × 100 = 96K results
 ROLLING_WINDOWS = [5, 15, 60]  # minutes
 BATCH_SIZE = 100
 MAX_WORKERS = 5
@@ -35,6 +35,14 @@ MAX_WORKERS = 5
 # ============================================================================
 PULLPUSH_BASE_URL = "https://api.pullpush.io/reddit"
 ARCTIC_SHIFT_BASE_URL = "https://arctic-shift.photon-reddit.com/api"
+
+# ============================================================================
+# XPOZ MCP CONFIGURATION
+# ============================================================================
+XPOZ_API_KEY = os.getenv("XPOZ_API_KEY", "")
+XPOZ_MCP_URL = "https://mcp.xpoz.ai/mcp"
+# Broad financial keywords — covers all 6 target subreddits in a single call
+XPOZ_KEYWORDS = "stocks investing trading market options calls puts earnings rally crash"
 
 # ============================================================================
 # REDIS CONFIGURATION
