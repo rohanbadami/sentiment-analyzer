@@ -39,10 +39,13 @@ st.set_page_config(page_title="Gossip Detector", layout="wide")
 # ============================================================================
 
 def check_password():
-    """Prompt for password if DASHBOARD_PASSWORD is configured in st.secrets."""
+    """Prompt for password if DASHBOARD_PASSWORD is configured."""
     try:
         expected = st.secrets["DASHBOARD_PASSWORD"]
     except (KeyError, FileNotFoundError):
+        expected = os.environ.get("DASHBOARD_PASSWORD")
+
+    if not expected:
         return  # No password configured — allow access (local dev)
 
     if st.session_state.get("authenticated"):
